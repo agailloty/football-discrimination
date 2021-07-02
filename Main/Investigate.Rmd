@@ -10,7 +10,7 @@ Ce jeu de données contient 18944 individus et 33 variables.
 
 ```{r, echo = FALSE}
 library(FactoMineR)
-load('C:/Users/Axel-Cleris Gailloty/Desktop/M2 IEE S2/MéthodesEvaluations/Projet/Main/Workspace.RData')
+load('Workspace.RData')
 ```
 ### 1. Observation d'individus extrêmes
 L'analyse des graphes ne révèle aucun individu singulier.
