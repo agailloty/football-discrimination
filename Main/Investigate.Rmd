@@ -1,0 +1,241 @@
+---
+title: "Analyse en Composantes Principales"
+author: "Jeu de données pca_data"
+output:
+  html_document: default
+---
+Ce jeu de données contient 18944 individus et 33 variables.
+
+- - -
+
+```{r, echo = FALSE}
+library(FactoMineR)
+load('C:/Users/Axel-Cleris Gailloty/Desktop/M2 IEE S2/MéthodesEvaluations/Projet/Main/Workspace.RData')
+```
+### 1. Observation d'individus extrêmes
+L'analyse des graphes ne révèle aucun individu singulier.
+
+- - -
+
+### 2. Distribution de l'inertie
+L'inertie des axes factoriels indique d'une part si les variables sont structurées et suggère d'autre part le nombre judicieux de composantes principales à étudier.
+
+Les 2 premiers axes de l' analyse expriment **69.43%** de l'inertie totale du jeu de données ; cela signifie que 69.43% de la variabilité totale du nuage des individus (ou des variables) est représentée dans ce plan.
+C'est un pourcentage assez important, et le premier plan représente donc convenablement la variabilité contenue dans une grande part du jeu de données actif.
+Cette valeur est nettement supérieure à la valeur référence de **6.54%**, la variabilité expliquée par ce plan est donc hautement significative
+(cette intertie de référence est le quantile 0.95-quantile de la distribution des pourcentages d'inertie obtenue en simulant 101 jeux de données aléatoires de dimensions comparables sur la base d'une distribution normale).
+
+Du fait de ces observations, il serait tout de même probablement préférable de considérer également dans l'analyse les dimensions supérieures ou égales à la troisième.
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+par(mar = c(2.6, 4.1, 1.1, 2.1))
+ggplot2::ggplot(cbind.data.frame(x=1:nrow(res$eig),y=res$eig[,2])) + ggplot2::aes(x=x, y=y)+ ggplot2::geom_col(fill="blue") + ggplot2::xlab("Dimension") + ggplot2::ylab("Pourcentage d'inertie") + ggplot2::ggtitle("Décomposition de l'inertie totale") + ggplot2::theme_light() + ggplot2::theme(plot.title = ggplot2::element_text(hjust =0.5)) + ggplot2::scale_x_continuous(breaks=1:nrow(res$eig))
+```
+
+**Figure 2 - Décomposition de l'inertie totale**
+*Le premier facteur est prépondérant : il explique a lui seul 56.16% de la variabilité totale des données.*
+*Il convient de noter que dans un tel cas, la variabilité liée aux autres composantes peut être dénuée de sens, en dépit d'un pourcentage élevé.*
+
+Une estimation du nombre pertinent d'axes à interpréter suggère de restreindre l'analyse à la description des 5 premiers axes.
+Ces composantes révèlent un taux d'inertie supérieur à celle du quantile 0.95-quantile de distributions aléatoires (86.52% contre 16.17%).
+Cette observation suggère que seuls ces axes sont porteurs d'une véritable information.
+En conséquence, la description de l'analyse sera restreinte à ces seuls axes.
+
+- - -
+
+### 3. Description du plan 1:2
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+integer(0)
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = c(1,2), choix = 'ind', invisible = 'quali', title = '', cex = cex)
+```
+
+**Figure 3.1 - Graphe des individus (ACP)**
+*Les individus libellés sont ceux ayant la plus grande contribution à la construction du plan.*
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+c("skill_ball_control", "skill_dribbling", "mentality_positioning", 
+"defending_standing_tackle", "attacking_finishing", "power_long_shots", 
+"attacking_short_passing", "defending_sliding_tackle", "mentality_interceptions", 
+"attacking_volleys", "skill_curve", "attacking_crossing", "goalkeeping_reflexes", 
+"goalkeeping_diving", "goalkeeping_handling", "goalkeeping_kicking", 
+"goalkeeping_positioning", "mentality_penalties")
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = 1:2, choix = 'var', title = '', cex = cex)
+```
+
+**Figure 3.2 - Graphe des variables (ACP)**
+*Les variables libellées sont celles les mieux représentées sur le plan.*
+
+* * *
+
+La **dimension 1** oppose des individus caractérisés par une coordonnée fortement positive sur l'axe (à droite du graphe)
+à des individus caractérisés par une coordonnée fortement négative sur l'axe (à gauche du graphe).
+
+Le groupe 1 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *power_long_shots*, *attacking_finishing*, *mentality_positioning*, *skill_curve*, *attacking_volleys*, *skill_dribbling*, *skill_fk_accuracy*, *attacking_crossing*, *power_shot_power* et *mentality_vision* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour les variables *goalkeeping_diving*, *goalkeeping_reflexes*, *goalkeeping_handling*, *goalkeeping_positioning*, *goalkeeping_kicking* et *power_strength* (de la plus extrême à la moins extrême).
+
+Le groupe 2 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour les variables *goalkeeping_diving*, *goalkeeping_handling*, *goalkeeping_reflexes*, *goalkeeping_kicking* et *goalkeeping_positioning* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *attacking_heading_accuracy*, *skill_ball_control*, *power_stamina*, *attacking_short_passing*, *skill_dribbling*, *mentality_aggression*, *attacking_crossing*, *skill_long_passing*, *mentality_positioning* et *movement_sprint_speed* (de la plus extrême à la moins extrême).
+
+Le groupe 3 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour les variables *defending_sliding_tackle*, *defending_standing_tackle*, *power_strength*, *mentality_interceptions*, *attacking_heading_accuracy*, *mentality_aggression*, *power_jumping* et *power_stamina* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *power_shot_power*, *mentality_vision*, *attacking_finishing*, *power_long_shots*, *skill_curve*, *attacking_volleys*, *skill_fk_accuracy*, *movement_agility*, *mentality_positioning* et *goalkeeping_kicking* (de la plus extrême à la moins extrême).
+
+Notons que la variable *skill_ball_control* est extrêmement corrélée à cette dimension (corrélation de 0.92). Cette variable pourrait donc résumer à elle seule la dimension 1.
+
+* * *
+
+La **dimension 2** oppose des individus caractérisés par une coordonnée fortement positive sur l'axe (en haut du graphe)
+à des individus caractérisés par une coordonnée fortement négative sur l'axe (en bas du graphe).
+
+Le groupe 1 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour les variables *goalkeeping_diving*, *goalkeeping_handling*, *goalkeeping_reflexes*, *goalkeeping_kicking* et *goalkeeping_positioning* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *attacking_heading_accuracy*, *skill_ball_control*, *power_stamina*, *attacking_short_passing*, *skill_dribbling*, *mentality_aggression*, *attacking_crossing*, *skill_long_passing*, *mentality_positioning* et *movement_sprint_speed* (de la plus extrême à la moins extrême).
+
+Le groupe 2 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *power_long_shots*, *attacking_finishing*, *mentality_positioning*, *skill_curve*, *attacking_volleys*, *skill_dribbling*, *skill_fk_accuracy*, *attacking_crossing*, *power_shot_power* et *mentality_vision* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour les variables *goalkeeping_diving*, *goalkeeping_reflexes*, *goalkeeping_handling*, *goalkeeping_positioning*, *goalkeeping_kicking* et *power_strength* (de la plus extrême à la moins extrême).
+
+Le groupe 3 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour les variables *defending_sliding_tackle*, *defending_standing_tackle*, *power_strength*, *mentality_interceptions*, *attacking_heading_accuracy*, *mentality_aggression*, *power_jumping* et *power_stamina* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *power_shot_power*, *mentality_vision*, *attacking_finishing*, *power_long_shots*, *skill_curve*, *attacking_volleys*, *skill_fk_accuracy*, *movement_agility*, *mentality_positioning* et *goalkeeping_kicking* (de la plus extrême à la moins extrême).
+
+
+- - -
+
+### 4. Description du plan 3:4
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+integer(0)
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = c(3,4), choix = 'ind', invisible = 'quali', title = '', cex = cex)
+```
+
+**Figure 4.1 - Graphe des individus (ACP)**
+*Les individus libellés sont ceux ayant la plus grande contribution à la construction du plan.*
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+c("movement_reactions", "power_strength", "movement_balance", 
+"power_shot_power", "mentality_composure", "goalkeeping_positioning", 
+"goalkeeping_handling", "goalkeeping_reflexes", "goalkeeping_diving"
+)
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = 3:4, choix = 'var', title = '', cex = cex)
+```
+
+**Figure 4.2 - Graphe des variables (ACP)**
+*Les variables libellées sont celles les mieux représentées sur le plan.*
+
+* * *
+
+La **dimension 3** oppose des individus caractérisés par une coordonnée fortement positive sur l'axe (à droite du graphe)
+à des individus caractérisés par une coordonnée fortement négative sur l'axe (à gauche du graphe).
+
+Le groupe 1 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *attacking_finishing*, *mentality_penalties*, *attacking_heading_accuracy*, *power_strength*, *attacking_volleys*, *power_shot_power*, *power_long_shots*, *mentality_positioning*, *power_jumping* et *mentality_composure* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *defending_sliding_tackle*, *defending_standing_tackle*, *mentality_interceptions*, *movement_balance*, *attacking_crossing*, *skill_long_passing*, *movement_agility*, *movement_acceleration*, *movement_sprint_speed* et *attacking_short_passing* (de la plus extrême à la moins extrême).
+
+Le groupe 2 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *movement_reactions*, *mentality_composure*, *skill_long_passing*, *mentality_vision*, *mentality_interceptions*, *attacking_short_passing*, *mentality_aggression*, *defending_standing_tackle*, *defending_sliding_tackle* et *power_shot_power* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour les variables *movement_sprint_speed*, *movement_acceleration*, *movement_balance* et *movement_agility* (de la plus extrême à la moins extrême).
+
+Le groupe 3 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour les variables *movement_balance*, *movement_acceleration*, *movement_sprint_speed*, *movement_agility*, *defending_sliding_tackle*, *defending_standing_tackle*, *attacking_crossing* et *mentality_interceptions* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *power_strength*, *attacking_heading_accuracy*, *power_shot_power*, *mentality_penalties*, *power_long_shots*, *attacking_volleys*, *attacking_finishing*, *mentality_composure*, *movement_reactions* et *mentality_positioning* (de la plus extrême à la moins extrême).
+
+
+* * *
+
+La **dimension 4** oppose des individus caractérisés par une coordonnée fortement positive sur l'axe (en haut du graphe)
+à des individus caractérisés par une coordonnée fortement négative sur l'axe (en bas du graphe).
+
+Le groupe 1 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour les variables *movement_balance*, *movement_acceleration*, *movement_sprint_speed*, *movement_agility*, *defending_sliding_tackle*, *defending_standing_tackle*, *attacking_crossing* et *mentality_interceptions* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *power_strength*, *attacking_heading_accuracy*, *power_shot_power*, *mentality_penalties*, *power_long_shots*, *attacking_volleys*, *attacking_finishing*, *mentality_composure*, *movement_reactions* et *mentality_positioning* (de la plus extrême à la moins extrême).
+
+Le groupe 2 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *movement_reactions*, *mentality_composure*, *skill_long_passing*, *mentality_vision*, *mentality_interceptions*, *attacking_short_passing*, *mentality_aggression*, *defending_standing_tackle*, *defending_sliding_tackle* et *power_shot_power* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour les variables *movement_sprint_speed*, *movement_acceleration*, *movement_balance* et *movement_agility* (de la plus extrême à la moins extrême).
+
+Le groupe 3 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *attacking_finishing*, *mentality_penalties*, *attacking_heading_accuracy*, *power_strength*, *attacking_volleys*, *power_shot_power*, *power_long_shots*, *mentality_positioning*, *power_jumping* et *mentality_composure* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *defending_sliding_tackle*, *defending_standing_tackle*, *mentality_interceptions*, *movement_balance*, *attacking_crossing*, *skill_long_passing*, *movement_agility*, *movement_acceleration*, *movement_sprint_speed* et *attacking_short_passing* (de la plus extrême à la moins extrême).
+
+
+- - -
+
+### 5. Description de la dimension 5
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+integer(0)
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = c(5,6), choix = 'ind', invisible = 'quali', title = '', cex = cex)
+```
+
+**Figure 5.1 - Graphe des individus (ACP)**
+*Les individus libellés sont ceux ayant la plus grande contribution à la construction du plan.*
+
+```{r, echo = FALSE, fig.align = 'center', fig.height = 3.5, fig.width = 5.5}
+drawn <-
+c("power_jumping", "movement_sprint_speed", "movement_acceleration", 
+"power_strength", "skill_fk_accuracy", "movement_balance", "movement_agility", 
+"power_stamina", "movement_reactions")
+par(mar = c(4.1, 4.1, 1.1, 2.1))
+plot.PCA(res, select = drawn, axes = 5:6, choix = 'var', title = '', cex = cex)
+```
+
+**Figure 5.2 - Graphe des variables (ACP)**
+*Les variables libellées sont celles les mieux représentées sur le plan.*
+
+* * *
+
+La **dimension 5** oppose des individus caractérisés par une coordonnée fortement positive sur l'axe (à droite du graphe)
+à des individus caractérisés par une coordonnée fortement négative sur l'axe (à gauche du graphe).
+
+Le groupe 1 (caractérisés par une coordonnée positive sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *power_jumping*, *movement_sprint_speed*, *movement_acceleration*, *movement_agility*, *power_stamina*, *movement_balance*, *attacking_heading_accuracy*, *power_strength*, *mentality_aggression* et *movement_reactions* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *skill_long_passing*, *skill_fk_accuracy*, *attacking_short_passing*, *mentality_vision*, *skill_curve*, *defending_standing_tackle*, *defending_sliding_tackle*, *mentality_interceptions*, *attacking_crossing* et *power_long_shots* (de la plus extrême à la moins extrême).
+
+Le groupe 2 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour des variables telles que *skill_long_passing*, *skill_fk_accuracy*, *attacking_short_passing*, *mentality_vision*, *skill_curve*, *defending_standing_tackle*, *defending_sliding_tackle*, *power_long_shots*, *mentality_penalties* et *mentality_interceptions* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *movement_sprint_speed*, *movement_acceleration*, *power_jumping*, *power_stamina*, *movement_agility*, *power_strength*, *attacking_heading_accuracy*, *movement_reactions*, *movement_balance* et *mentality_aggression* (de la plus extrême à la moins extrême).
+
+Le groupe 3 (caractérisés par une coordonnées négative sur l'axe) partage :
+
+- de fortes valeurs pour les variables *movement_sprint_speed*, *movement_acceleration*, *power_strength*, *power_stamina*, *attacking_crossing*, *skill_dribbling* et *movement_reactions* (de la plus extrême à la moins extrême).
+- de faibles valeurs pour des variables telles que *power_jumping*, *movement_balance*, *mentality_penalties*, *skill_fk_accuracy*, *attacking_heading_accuracy*, *power_long_shots*, *attacking_volleys*, *power_shot_power*, *skill_curve* et *mentality_aggression* (de la plus extrême à la moins extrême).
+
+
+- - -
+
+### 6. Classification
+
+Le jeu de données est trop volumineux pour réaliser la classification.
+
+- - -
+
+## Annexes
+
