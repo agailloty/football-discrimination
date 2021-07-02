@@ -1,6 +1,5 @@
 # The goal here is to reduce the dimensions of the dataset by throwing out useless columns and 
 # transforming the numeric columns with PCA
-setwd("C:/Users/Axel-Cleris Gailloty/Desktop/M2 IEE S2/MéthodesEvaluations/Projet/Main")
 source("helper.R")
 
 library(dplyr)

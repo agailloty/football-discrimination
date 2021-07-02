@@ -18,7 +18,7 @@ toc-title: "Table des matières"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = "")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = "", fig.align = "center", fig.height = 4)
 library(readr)
 library(dplyr)
 library(caret)
@@ -27,6 +27,33 @@ library(tableone)
 library(stargazer)
 library(knitr)
 options(ggrepel.max.overlaps = Inf)
+library(MatchIt)
+comparisonFormula = as.formula("foreigner ~ age+height_cm+overall+potential+international_reputation+weak_foot+league1+european_club+Dim.1+Dim.2+Dim.3+Dim.4")
+comparisonColumns = c("age", "height_cm", "overall", "potential", "weight_kg", "player_european", "international_reputation", "weak_foot", "league1" , "european_club",  "lwage", "wage_eur",
+                      "skill_moves", "Dim.1", "Dim.2", "Dim.3", "Dim.4")
+
+addStars <- function(x) {
+  if (x < 0.00001) {
+    "***"
+  } else if ((x >= 0.00001) & (x <= 0.01)) {
+    "**"
+  } else if ((x >=0.01) & (x <=0.05)) {
+    "*"
+  } else if ((x > 0.05) & (x <= 0.1)) {
+    "."
+  } else {
+    ""
+  }
+}
+
+printOLS <- function(olsRes, decimal=3) {
+  options("digits" = decimal)
+  df <- broom::tidy(olsRes)
+  df$signif. <- sapply(df$p.value, addStars)
+  options("digits" = 6)
+  return(df)
+}
+
 ```
 
 ```{r}
@@ -53,13 +80,19 @@ salaire_moyen_joueur_europeen <- round(mean(cleaned_data$wage_eur[cleaned_data$e
 
 \pagebreak
 
-En moyenne un joueur de football quelconque en club dans le monde gagne `r salaire_moyen` € par mois. Ce montant est supérieur au salaire moyen des pays de l'OCDE. La différence est encore plus forte lorsque nous séparons calculons les moyennes conditionnellement à l'extranéité du joueur. En moyenne un joueur étranger à la nationalité du club qui l'engage gagne `r format(salaire_moyen_etranger, scientific = F)` € contre `r format(salaire_moyen_natif, scientific = FALSE)` € si le joueur est de la même nationalité que le club qui l'engage. Ce différentiel qui du moins est énorme peut susciter des questions importantes quant à la répartition des salaires dans les clubs de foot. Face à une telle différence dans les rémunérations, un esprit rationnel ne peut s'empêcher d'énoncer des hypothèses pour rendre compte de cet écart. En apparence nous pouvons avancer la raison que les joeurs étrangers sont discriminés positivement parce que les clubs de football y trouvent un intérêt et que cela est une caractéristique du modèle économique du football. 
-Nous pouvons aussi penser que ce fort écart de salaire est dû aux performances des joueurs de football étrangers qui sont en moyenne supérieures à celles des joueurs ayant la même nationalité que le club et ce un salaire plus élevé permet de compenser le différentiel positif de performances. Dans ce cas nous serions en raison de nous demander quelle est la rémunération marginale d'une unité de performance ?  
-Penser ainsi suppose que les salaires des footballeurs sont normalement distribués (avec un salaire moyen et un écart-moyen entre les salaires constants).  
-Ou simplement nous pouvons dire que l'écart des salaires contastés est dû à une répartition très inégale des salaires en sorte que seulement quelques joueurs arrivent à eux seuls expliquer une grande partie de la différence. 
-Se poser ces questions énonce inévitablement la question de la discrimination et du modèle économique du football. 
+***
+
+*En moyenne un joueur de football quelconque en club dans le monde gagne `r salaire_moyen` € par mois. Ce montant est supérieur au salaire moyen des pays de l'OCDE. La différence est encore plus forte lorsque nous séparons calculons les moyennes conditionnellement à l'extranéité du joueur. En moyenne un joueur étranger à la nationalité du club qui l'engage gagne `r format(salaire_moyen_etranger, scientific = F)` € contre `r format(salaire_moyen_natif, scientific = FALSE)` € si le joueur est de la même nationalité que le club qui l'engage. Ce différentiel qui du moins est énorme peut susciter des questions importantes quant à la répartition des salaires dans les clubs de foot. Face à une telle différence dans les rémunérations, un esprit rationnel ne peut s'empêcher d'énoncer des hypothèses pour rendre compte de cet écart. En apparence nous pouvons avancer la raison que les joeurs étrangers sont discriminés positivement parce que les clubs de football y trouvent un intérêt et que cela est une caractéristique du modèle économique du football.* 
+*Nous pouvons aussi penser que ce fort écart de salaire est dû aux performances des joueurs de football étrangers qui sont en moyenne supérieures à celles des joueurs ayant la même nationalité que le club et ce un salaire plus élevé permet de compenser le différentiel positif de performances. Dans ce cas nous serions en raison de nous demander quelle est la rémunération marginale d'une unité de performance ?*  
+*Penser ainsi suppose que les salaires des footballeurs sont normalement distribués (avec un salaire moyen et un écart-moyen entre les salaires constants).*  
+*Ou simplement nous pouvons dire que l'écart des salaires contastés est dû à une répartition très inégale des salaires en sorte que seulement quelques joueurs arrivent à eux seuls expliquer une grande partie de la différence.* 
+*Se poser ces questions énonce inévitablement la question de la discrimination et du modèle économique du football.*
 
 **Mots clés : football, régression linéaire , régression par discontinuité, échantillonnage sur score de propension**
+
+***
+
+\pagebreak
 
 # Spécification technique 
 
@@ -109,8 +142,6 @@ Nous utilisons la méthode d'échantillonage sur le score de propension.
 ## Les méthodes de mesure de discrimination
 
 Plusieurs méthodes économétriques existent pour mesurer la discrimination en économie. Une première méthode que nous pouvons présenter est celle de la régression par quantile. La logique derrière la régression par quantile est simple si on est familier avec la méthode de régression linéaire. La régression par quantile est une méthode de régression pour estimer ces fonctions quantiles conditionnelles. Tout comme la régression linéaire estime la fonction moyenne conditionnelle comme une combinaison linéaire des prédicteurs, la régression quantile estime la fonction quantile conditionnelle comme une combinaison linéaire des prédicteurs.
-
-
 
 # Le modèle économique du football
 
@@ -163,11 +194,6 @@ Le tableau suivant résume les caractéristiques que nous avons choisies. Les cr
 : Caractéristiques des joueurs retenues dans l'analyse
 
 
-```{r}
-cleaned_data$lwage_eur <- log(cleaned_data$wage_eur)
-ggplot(cleaned_data, aes(x = lwage_eur)) + geom_histogram(bins = 30, color = "white")
-```
-
 # Estimations économétriques
 
 ## Première estimation avec les OLS
@@ -175,9 +201,10 @@ ggplot(cleaned_data, aes(x = lwage_eur)) + geom_histogram(bins = 30, color = "wh
 Nous commençons les estimations par une régression linéaire multiple pour expliquer globalement les facteurs qui entrent dans la détermination des salaires des footballeurs. 
 
 ```{r, results='asis'}
+cleaned_data$lwage_eur <- log(cleaned_data$wage_eur)
 firstReg <- lm(lwage_eur~age+height_cm+weight_kg+overall+potential+international_reputation+weak_foot+league1+european_club+Dim.1+Dim.2+Dim.3+Dim.4, data = cleaned_data)
 frCoef <- round(coef(firstReg), 3)
-stargazer(firstReg, font.size = "small")
+kable(printOLS(firstReg))
 ```
 
 ### Diagnostics du modèle
@@ -240,7 +267,7 @@ Le tableau suivant nous montre que la variable `foreigner` que nous venons de cr
 En moyenne les joueurs étrangers sont plus âgé d'une année, ils sont plus grand en taille, ils ont des performances globales plus impressionantes, ils sont plus réputés à l'international et ont des profils d'attaquant.  
 
 ```{r}
-summaryTable <- CreateTableOne(vars = c("age", "height_cm", "overall", "potential", "player_european","lwage_eur", "weak_foot", "international_reputation", "Dim.1", "Dim.2", "Dim.3", "Dim.4"), data = cleaned_data, strata = "foreigner")
+summaryTable <- CreateTableOne(vars = comparisonColumns, data = cleaned_data, strata = "foreigner")
 knitr::kable(print(summaryTable, printToggle = FALSE, noSpaces = TRUE), col.names = c("Natif", "Etranger", "p.value", ""))
 ```
 Nous pouvons réestimer la régression linéaire en ajoutant cette variable en plus pour voir l'impact de l'extranéité sur le salaire des joueurs de football. 
@@ -249,12 +276,11 @@ Nous pouvons réestimer la régression linéaire en ajoutant cette variable en p
 
 Dans la seconde estimation nous incluons la variable `foreigner` qui traduit ici l'extranéité des joueurs. 
 
-```{r, results='asis'}
+```{r}
 secReg <- lm(lwage_eur~foreigner+age+height_cm+weight_kg+overall+potential+international_reputation+weak_foot+league1+european_club+Dim.1+Dim.2+Dim.3+Dim.4, data = cleaned_data)
 secCoef <- round(coef(secReg), 3)
 
-stargazer(secReg, title = "Seconde régression")
-#summary(secReg)
+kable(printOLS(secReg))
 ```
 
 Toute chose égale par ailleurs, un joueur étranger à la nationalité du club pour qui il joue gagnent `r 100 * secCoef["foreigner"]` % de plus qu'un joueur qui n'est pas étranger. 
@@ -275,19 +301,9 @@ La méthode du score de propension est souvent présentée comme une alternative
 
 L'usage que nous allons faire de l'échantillonage sur score de propension est quelque peu inédit. En effet, en temps normal nous utilisons le score de propension pour diviser une population en deux groupes : un groupe témoin et un groupe test. Dans notre cas nous savons au préalable quel joueur est étranger au club dans lequel et quel joueur est natif. Nous voulons donc utiliser le score de propension non pour faire un essai randomisé mais pour répondre à la question suivante : les joueurs étrangers ont-ils des caractéristiques comparables aux joueurs natifs ? Nous allons calculer le score de propension pour chacun des joueurs en prenant l'extranéité comme la variable dichotomique servant à identifier si le joueur est dans le groupe de traitement ou dans le groupe test. Nous avons codé la variable `foreigner` qui représente l'exranéité de telle sorte qu'elle prenne la valeur 1 si le joueur est étranger au club et 0 s'il est natif du club. Nous voulons en quelque sorte reproduire le contrefactuel. Etant donné le salaire actuel d'un joueur étranger, que gagnerait-il s'il était de la même nationalité que le club qui l'engage ?  
 
-
-```{r}
-library(MatchIt)
-comparisonFormula = as.formula("foreigner ~ age+height_cm+overall+potential+international_reputation+weak_foot+league1+european_club+Dim.1+Dim.2+Dim.3+Dim.4")
-comparisonColumns = c("age", "height_cm", "overall", "potential", "weight_kg", "player_european", "international_reputation", "weak_foot", "league1" , "european_club",  "wage_eur",
-                      "skill_moves", "Dim.1", "Dim.2", "Dim.3", "Dim.4")
-
-```
-
-
 ```{r}
 m.out <- matchit(comparisonFormula, data = cleaned_data, method = "nearest")
-summaryTable <- tableone::CreateTableOne(vars = c("age", "height_cm", "overall", "potential", "player_european","wage_eur", "international_reputation", "Dim.1", "Dim.2", "Dim.3", "Dim.4"), data = match.data(m.out), strata = "foreigner")
+summaryTable <- tableone::CreateTableOne(vars = comparisonColumns, data = match.data(m.out), strata = "foreigner")
 ```
 
 
@@ -297,8 +313,8 @@ Nous essayons la méthode optimale. Calculer le score de propension en utilisant
 
 ```{r}
 m.out <- matchit(comparisonFormula, data = cleaned_data, method = "nearest")
-summaryTable <- tableone::CreateTableOne(vars = c("age", "height_cm", "overall", "potential", "player_european","wage_eur", "international_reputation", "Dim.1", "Dim.2", "Dim.3", "Dim.4"), data = match.data(m.out), strata = "foreigner")
-#knitr::kable(print(summaryTable, printToggle = FALSE, noSpaces = TRUE), col.names = c("Natif", "Etranger", #"p.value", ""))
+summaryTable <- tableone::CreateTableOne(vars = comparisonColumns, data = match.data(m.out), strata = "foreigner")
+#knitr::kable(print(summaryTable, printToggle = FALSE, noSpaces = TRUE), col.names = c("Natif", #"Etranger", "p.value", ""))
 ```
 
 La méthode d'estimation utilisée pour calculer le score de propension est la régression logistique. L'appariement que nous faisons sur les scores de propension est un appariement 1:1 sans remplacement, un joueur étranger est apprié à un joueur natif. Les variables que nous utilisons sont l'âge, la taille, la performance globale, le potentiel du joueur, sa réputation internationale, la capacité du joueur à jouer avec son pied faible (pied gauche si droitier et pied droit si gaucher), l'indicatrice qui montre que le club est en première ligne, le club est-il européen et les caractéristiques techniques individuelles des joueurs (Dim.1 à Dim.4). C'est ce que nous résumons dans le tableau suivant. 
@@ -313,18 +329,13 @@ m.out
 
 ### Distribution des scores de propension 
 
-Nous représentons la distribution des scores de propension à l'aide d'un histogramme. La distribution des scores de propension suit une allure gaussienne. Plus le score est élevé mieux est la qualité de l'appariement. Sur le graphique suivant nous voyons que l'allure des scores de propension suit une distrbution normale. Il y a des scores de propension très élevés et d'autre très faibles. Nous verrons un peu plus tard ce que cela implique que le score de propension soit faible ou élevé (compris entre 0 et 1).
+Nous représentons la distribution des scores de propension à l'aide d'un histogramme. Plus le score est élevé meilleure est la qualité de l'appariement. Sur le graphique suivant nous voyons que l'allure des scores de propension suit une distrbution normale. Il y a des scores de propension très élevés et d'autre très faibles. Nous verrons un peu plus tard ce que cela implique que le score de propension soit faible ou élevé (compris entre 0 et 1).
 
 ```{r}
 hist(matchedData$distance, main = "Distribution des scores de propension", xlab = "Score de propension", breaks = 100)
 ```
 
-Nous avons construit un tableau qui affiche un échantillon des résultats du matching. La fonction `match.data()` du package MatchIt ajoute 3 les colonnes subclass, distance au jeu de données initial. Nous voulons voir la qualité de l'appariement en affichant un échantillon des données. 
-Par exemple dans la première ligne du tableau nous observons que la moyenne des scores de propension de Paul Pogba et de Harry Kane est de 0.9125. Un score de propension proche de 1 traduit une bonne qualité d'appariement entre les deux joueurs.  
-
-Nous pouvons interpréter la première ligne du tableau comme suivant : Paul Pogba de nationalité fançaise est apparié à Harry Kane de nationalité anglaise. Paul Pogba est de ce fait étranger à la nationalité du club dans lequel il joue tandis que Harry Kane est natif du club dans lequel il joue. Les deux joueurs ne jouent toutefois pas dans le même club.  
-
-Dans ce premier exemple nous voyons que Harry Kane qui est natif du club dans lequel il joue gagne plus que Paul Pogba qui est étranger. La qualité de l'appariement est très bonne pour ces deux joueurs. Bien que nous n'ayons pas inclus le salaire dans le calcul du score de propension nous voyons tout de même qu'à compétences presque similaires les deux joueurs gagnent des revenus très élevés. 
+Nous avons construit un tableau qui affiche un échantillon des résultats du matching. La fonction `match.data()` du package MatchIt ajoute les colonnes `subclass` et `distance` au jeu de données initial. La colonne `subclass` précise les identifiants des sous-classes uniques qui ont été créées. Une sous-classe contient une paire d'individu apparié. Il y a donc en total N/2 sous-classes. La colonne `distance` de son côté contient le score de propension estimé pour le joueur. Voyons un aperçu de la qualité de l'appariement en affichant quelques entrées du jeu de données.  
 
 Nous affichons les scores de propension par ordre décroissant. D'abord nous affichons dans le tableau suivant les 10 premiers scores de propension les plus élevés. 
 
@@ -346,6 +357,12 @@ group_by(subclass) %>% summarize(
 ```
 
 \normalsize
+
+Par exemple dans la première ligne du tableau nous observons que la moyenne des scores de propension de Paul Pogba et de Harry Kane est de 0.9125. Un score de propension proche de 1 traduit une bonne qualité d'appariement entre les deux joueurs.  
+
+Nous pouvons interpréter la première ligne du tableau comme suivant : Paul Pogba de nationalité fançaise est apparié à Harry Kane de nationalité anglaise. Paul Pogba est de ce fait étranger à la nationalité du club dans lequel il joue tandis que Harry Kane est natif du club dans lequel il joue. Les deux joueurs ne jouent toutefois pas dans le même club.  
+
+Dans ce premier exemple nous voyons que Harry Kane qui est natif du club dans lequel il joue gagne plus que Paul Pogba qui est étranger. La qualité de l'appariement est très bonne pour ces deux joueurs. Bien que nous n'ayons pas inclus le salaire dans le calcul du score de propension nous voyons tout de même qu'à compétences presque similaires les deux joueurs gagnent des revenus très élevés. 
 
 Ensuite nous affichons les scores de propension les moins élévés. 
 
@@ -374,28 +391,55 @@ Voyons maintenant les caractéristiques des joueurs après l'appariement.
 
 ## Caractéristiques moyennes des joueurs natifs et étrangers après appariement
 
-```{r}
-kable(
-  print(
-    CreateTableOne(comparisonColumns, strata = "foreigner", data = matchedData), 
-    printToggle = FALSE, noSpaces = TRUE))
-```
+
+La taille de l'échantillon a été réduite de `r dim(cleaned_data)[1]` observations à `r dim(matchedData)[1]` car `r dim(cleaned_data)[1] - dim(matchedData)[1]` joueurs natifs ont été retirés du jeu de données car ne pouvant pas être apparié à un joueur étranger. Il y a donc maintenant `r round(dim(matchedData)[1]/2)` observations dans chacun des groupes. C'est ce que nous résumons dans le tableau suivant.  
 
 ```{r}
 kable(
   print(
     CreateTableOne(comparisonColumns, strata = "foreigner", data = matchedData), 
-    printToggle = FALSE, noSpaces = TRUE), col.names = c(".", "Etranger", "Natif"))
+    printToggle = FALSE, noSpaces = TRUE), col.names = c("Natif", "Etranger", "p.value", ""))
 ```
-
-
-\tiny
 
 ```{r}
-summary(m.out, improvement = FALSE)
+salary_diff_before_matching <- round(mean(filter(cleaned_data, foreigner== 1)$wage_eur) - mean(filter(cleaned_data, foreigner== 0)$wage_eur))
+
+salary_diff_after_matching <- round(mean(filter(matchedData, foreigner== 1)$wage_eur) - mean(filter(matchedData, foreigner== 0)$wage_eur))
 ```
 
-\normalsize
+
+Nous voyons que la différence de salaire entre les deux groupes est passée de `r salary_diff_before_matching` à `r salary_diff_after_matching`. Toutefois nous pouvons imputer une partie de la différence de salaire entre les deux groupes à la monnaie dans laquelle est exprimée le salaire des joueurs. 
+En effet, les salaires des joueurs sont exprimés en euros sans prendre en compte la parité du pouvoir d'achat. Il serait donc pertinent de soit calculer les salaires par parité du pouvoir d'achat soit calculer la différence des salaires entre les étrangers et les natifs conditionnellement à la situation géographique des clubs qui engagent les joueurs.  
+Nous optons pour la seconde option qui est simple à implémenter. Nous allons appliquer un filtre sur la nationalité des clubs pour ne nous limiter qu'aux clubs des pays européens que sont la France, l'Angleterre, l'Allemagne, l'Italie, l'Espagne, la Belgique et le Portugal. Bien que l'Angleterre n'utilise pas l'euro nous estimons que le niveau de salaire des Anglais est comparable à celui des autres pays filtres.  
+
+```{r}
+selectedNationalities <- c("Spain", "France", "England", "Germany", "Belgium", "Belgium", "Italy")
+matchedData_eur <- filter(matchedData, league_nationality %in% selectedNationalities)
+```
+
+```{r}
+diff_eur_club <- salary_diff_before_matching <- round(mean(filter(matchedData_eur, foreigner== 1)$wage_eur) - mean(filter(matchedData_eur, foreigner== 0)$wage_eur))
+```
+
+En appliquant le filtre sur les données, quelques propriétés intéressantes ressortent. L'intuition que nous venons d'avoir quant à l'écart des salaires qui devrait être plus faible compte tenu de la situation géographique s'est avérée fausse car nous observons le contraire. Les joueurs étrangers jouant dans les clubs européens gagnent beaucoup plus que leurs coéquipiers européens natifs des clubs dans lesquels ils jouent. Cette différence de salaire s'élève cette fois à `r diff_eur_club`. 
+
+Les joueurs recrutés dans les clubs européens ont sensiblement le même âge qu'ils soient étrangers ou natifs du club. Il n'y a non plus de différences en termes de taille. Pour ce qui concerne les caractéristiques techniques nous observons que les clubs européens recrutent des joueurs étrangers qui ont un profil d'attaquant pour combler le manque des joueurs ayant la même nationalité que le club (la variable synthétique `Dim.1`). Toutefois nous voyons qu'en proportion nous observons un nombre sensiblement élevé de joueurs ayant le profil d'attaquant en Europe. 
+
+Nous résumons les différences de caractéristiques dans le tableau suivant. 
+
+```{r}
+kable(
+  print(
+    CreateTableOne(comparisonColumns, strata = "foreigner", data = matchedData_eur), 
+    printToggle = FALSE, noSpaces = TRUE), col.names = c("Natif", "Etranger", "p.value", ""))
+```
+
+Bien que nous ayons apparié les joueurs à l'aide du score de propension nous observons qu'il existe toujours des différences significatives entre les joueurs étrangers et les joueurs natifs. 
+Le salaire est toujours plus élevé pour les joueurs étranger. Nous aimerons maintenant étudier modéliser les composantes qui entrent dans l'écart du salaire. 
+Nous avons vu qu'en économie, pour affirmer qu'il existe une discrimination nous devons être en mesure de comparer les joueurs sur une base de ***toutes choses égales par ailleurs***. Or nous voyons à l'aide de l'appariement qu'il existe des différences significatives entre les joueurs étrangers et les joueurs natifs qui expliquent l'écart du salaire.  
+Nous voulons maintenant décomposer cette différence de salaire en plusieurs facteurs : quelle est la part du salaire qui est dûe exclusivement aux caractéristiques individuelles des joueurs. Quelle est aussi la part de l'écart du salaire que nous pouvons expliquer grâce aux variables observables telles que l'âge, la taille etc... et aussi quelle est la part de l'écart du salaire que l'intéraction entre les dotations individuelles et les coefficients expliquent. 
+
+Nous allons pouvoir répondre à cette série de question à l'aide de la décomposition dite de Blinder-Oaxaca. 
 
 # Modélisation économétrique de la discrimination
 
@@ -454,9 +498,13 @@ plot(res, components = c("interaction") )
 
 ### La décomposition en deux facteurs
 
-```{r}
+```{r fig.height=8}
 plot(res, decomposition = "twofold", group.weight = -1)
 ```
+
+# Conclusion 
+
+## Limites de l'étude
 
 # Annexes
 

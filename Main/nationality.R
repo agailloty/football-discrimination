@@ -1,6 +1,5 @@
-setwd("/cloud/project/Main")
 
-league_nat <- tolower(readRDS("/cloud/project/Main/league_nat.rds"))
+league_nat <- tolower(readRDS("league_nat.rds"))
 country_adj <- read_csv("demonyms.csv")
 colnames(country_adj) <- c("adjective", "country")
 country_adj$adjective <- tolower(country_adj$adjective)
